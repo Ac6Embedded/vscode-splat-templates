@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="assets/NUCLEO_WBA55CG.css" />
+  <link rel="stylesheet" href="../common/assets/serial-ui.css" />
+</head>
+
+<body>
+  <div id="app">
+    <div class="logo-container">
+      <svg class="logo-ac6" viewBox="0 0 176 82" width="88px" height="41px">
+        <image xlink:href="../common/assets/logo_ac6.svg" />
+      </svg>
+    </div>
+    
+    <div class="refresh-button-container">
+      <button id="refreshButton">
+        <img src="../common/assets/refresh.png" alt="Refresh" />
+      </button>
+    </div>
+    
+	<div id="board">
+	  <svg class="board" version="1.1" width="1280px" height="720px" viewBox="0 0 539 350">
+	    <!-- Image of the board -->
+	    <image xlink:href="assets/NUCLEO_WBA55CG.gif" y="0" x="0" preserveAspectRatio="xMidYMax" height="350px" width="539px" />
+	    <!-- Images replacing interactive elements (e.g., LEDs) -->
+	    <!-- LED1 in neon blue -->
+	    <rect class="interactive shadowed hidden" id="LED--LED1" x="128" y="243" width="7" height="4" fill="#0000FF"></rect>
+	    <!-- LED2 in neon green -->
+	    <rect class="interactive shadowed hidden" id="LED--LED2" x="128" y="254" width="7" height="4" fill="#39FF14"></rect>
+	    <!-- LED3 in neon red -->
+	    <rect class="interactive shadowed hidden" id="LED--LED3" x="129" y="266" width="7" height="4" fill="#FF073A"></rect>
+	    
+	    <ellipse class="interactive" style="opacity:1;fill-opacity:1;" id="Button--UserButton" cx="126" cy="118" rx="5" ry="5"></ellipse>
+	    <ellipse class="interactive" style="opacity:1;fill-opacity:1;fill:red" id="Button--ResetButton" cx="125" cy="88" rx="5" ry="5"></ellipse>
+	    <ellipse class="interactive" style="opacity:1;fill-opacity:1;" id="Button--UserButton" cx="126" cy="147" rx="5" ry="5"></ellipse>
+	    <ellipse class="interactive" style="opacity:1;fill-opacity:1;fill:red" id="Button--ResetButton" cx="126" cy="186" rx="5" ry="5"></ellipse>
+	    
+	  </svg>
+	</div>
+
+
+    <div id="console-header-container">
+      <div id="title-console">Serial</div>
+      <button id="hide-serial-button">Hide</button>
+      <button id="clear-message-button">Clear</button>
+    </div>
+    
+    <div id="resizable-bar"></div>
+    
+    <div id="send-message-container">
+      <input type="text" id="send-to-uart-content" placeholder="Enter message..." />
+      <button id="send-message-button">Send</button>
+    </div>
+    
+    <div id="uart">
+      <div class="message-container" id="message-container">
+        <pre id="uart-content"></pre>
+      </div>
+    </div>
+    
+    <div id="footer"></div>
+  </div>
+
+  <script src="../common/assets/serial.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", (event) => {
+      console.log("DOM fully loaded and parsed");
+
+      let interactive = document.getElementsByClassName("interactive");
+      let els = {};
+      let uartChars = [];
+      let uartContent = document.getElementById("message-container");
+      for (el of interactive) {
+        let idSplit = el.id.split("--");
+        el.objectType = idSplit[0];
+        els[idSplit[1]] = el;
+      }
+      for (el of Object.values(els)) {
+        //if (el.objectType == "LED") el.classList.add("hidden");
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const port = urlParams.get("internalPort") || 9001;
+
+      let ws = new WebSocket(`ws://localhost:${port}/`);
+
+      ws.onopen = function () {
+        console.log("WebSocket connection opened");
+      };
+
+      ws.onmessage = function (e) {
+        let split = e.data.split("|");
+        let type = split[0];
+        let name = split[1];
+        let message = split[2];
+
+        if (type == "LED") {
+          let el = els[name];
+          if (el == null) {
+            return;
+          }
+          if (message == "True") {
+            el.classList.remove("hidden");
+          } else {
+            el.classList.add("hidden");
+          }
+        } else if (type == "UART") {
+          uartChars.push(message);
+          uartContent.innerHTML = uartChars.join("");
+          scrollToBottom();
+        }
+      };
+
+      const clearButton = document.getElementById("clear-message-button");
+      clearButton.addEventListener("click", function () {
+        uartChars = []; // Clear the array holding the UART characters
+        uartContent.innerHTML = uartChars.join("");
+      });
+
+      // Function to send a message when the button is pressed
+      function sendPressMessage() {
+        ws.send("PRESS_BUTTON");
+      }
+
+      // Function to send a message when the button is released
+      function sendReleaseMessage() {
+        ws.send("RELEASE_BUTTON");
+      }
+
+      
+      function sendMessage() {
+          const message = document.getElementById("send-to-uart-content").value;
+            // Send each character one by one
+          ws.send("RECEIVE_UART|\n");
+          for (const char of message) {
+              ws.send(`RECEIVE_UART|${char}`);
+          }
+            // Send carriage return character at the end
+          ws.send("RECEIVE_UART|\r");
+      }
+
+      function sendResetPressMessage() {
+        ws.send("RESET_BUTTON_PRESSED");
+      }
+
+      // Function to send a message when the Reset button is released
+      function sendResetReleaseMessage() {
+        ws.send("RESET_BUTTON_RELEASED");
+      }
+
+      // Adding event handlers to the Reset button
+      let resetButton = document.getElementById("Button--ResetButton");
+      resetButton.addEventListener("mousedown", sendResetPressMessage);
+      resetButton.addEventListener("mouseup", sendResetReleaseMessage);
+
+      // Adding event handlers to the button
+      let button = document.getElementById("Button--UserButton");
+      button.addEventListener("mousedown", sendPressMessage);
+      button.addEventListener("mouseup", sendReleaseMessage);
+
+      // Adding event handler for the send button
+      document.getElementById("send-message-button").addEventListener("click", sendMessage);
+
+      // Function to scroll the message container to the bottom
+      function scrollToBottom() {
+        uartContent.scrollTop = uartContent.scrollHeight;
+      }
+    });
+  </script>
+</body>
+
+</html>
+

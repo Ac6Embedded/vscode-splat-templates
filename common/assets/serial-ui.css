@@ -1,0 +1,132 @@
+#resizable-bar {
+  height: 1%;
+  font-size: 1px;
+  background-color: #ccc; 
+  cursor: ns-resize;
+  display: block;
+  position: relative; /* Add position relative, absolute, or fixed */
+  z-index: 999; /* Set a high z-index to ensure it's on top */
+}
+
+#console-header-container {
+	height: 1%;
+    display: flex;
+    align-items: end;  /* Align items vertically */
+    justify-content: flex-start; /* Align items to the start horizontally */
+}
+
+#clear-message-button {
+    margin-right: 5px;
+    width: auto;
+    height: auto;
+    background-color: #f2f2f2;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    border-radius: 5px 5px 0px 0px;
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth transition for background and border color */
+}
+
+#clear-message-button:hover {
+    background-color: #e0e0e0; /* Lighter shade on hover */
+    border-color: #bbb; /* Darker border on hover */
+}
+
+#hide-serial-button {
+    margin-left: auto;  /* This pushes the button to the right */
+    margin-right: 5px;
+    width: auto;
+    height: auto;
+    background-color: #f2f2f2;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    border-radius: 5px 5px 0px 0px;
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth transition for background and border color */
+}
+
+#hide-serial-button:hover {
+    background-color: #e0e0e0; /* Lighter shade on hover */
+    border-color: #bbb; /* Darker border on hover */
+}
+
+#title-console{
+    margin-right: auto;
+	margin-left: 0px;
+	padding: 0px 5px 0px 5px;
+    width: auto;
+    height: auto;
+    /*border: 1px solid #ccc;
+    border-radius: 0px 5px 0px 0px;*/
+	font-family: Arial;
+	font-size: 14px
+}
+
+#uart {
+  position: relative;
+  height: 20%;
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  display: block;
+}
+#footer {
+  height: 10px;
+  font-size: 1px;
+  display: block;
+}
+.message-container {
+  position: absolute;
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%;
+  overflow: auto;
+  border: 1px solid #ccc;
+  left: 0%; /* Position proportionnelle à la fenêtre */
+  background-color: #222222;
+  color: #ddd;
+  font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.message {
+  margin-bottom: 6px;
+  line-height: 1.3; /* Réduire la hauteur de ligne */
+}
+
+
+#send-to-uart-content {
+  flex-grow: 1; /* Takes up as much space as possible */
+  margin: 5px 10px 5px 10px;
+  
+  padding: 5px; /* Padding around the text */
+  background-color: #fff; /* White background for the text area */
+  border: 1px solid #ccc; /* Border around the text area */
+  height: 20px; /* Fixed height for the text area */
+  overflow: auto; /* Allows scrolling inside the text area */
+  white-space: nowrap; /* Keeps the text in a single line */
+}
+
+#send-message-button {
+  padding: 5px 10px; /* inside the button */
+  background-color: #007BFF;
+  color: white; /* Text color  */
+  border: none;
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s; /* Smooth hover */
+}
+
+#send-message-button:hover {
+  background-color: #0056b3;
+}
+#send-message-container {
+  display: flex; /* Ensures that content and button are in a row */
+  flex-grow: 1; /* Allows container to take available horizontal space */
+  align-items: center; /* Vertically */
+  padding-right: 10px;
+  background-color: #fff; 
+  height: 40px;
+  position:relative;
+}

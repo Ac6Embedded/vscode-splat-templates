@@ -1,0 +1,30 @@
+using "platforms/cpus/stm32f4.repl"
+
+UserButton: Miscellaneous.Button @ gpioPortA
+    -> gpioPortA@0
+
+LED4: Miscellaneous.LED @ gpioPortD
+
+gpioPortD:
+    12 -> LED4@0
+   
+LED3: Miscellaneous.LED @ gpioPortD
+
+gpioPortD:
+    13 -> LED3@0
+    
+LED5: Miscellaneous.LED @ gpioPortD
+
+gpioPortD:
+    14 -> LED5@0
+    
+LED6: Miscellaneous.LED @ gpioPortD
+
+gpioPortD:
+    15 -> LED6@0
+
+ccm: Memory.MappedMemory @ sysbus 0x10000000
+    size: 0x10000
+    
+nvic: 
+    systickFrequency: 168000000

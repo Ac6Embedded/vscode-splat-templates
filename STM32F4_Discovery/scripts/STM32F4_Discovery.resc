@@ -1,0 +1,37 @@
+:name: STM32F4 Discovery
+:description: This script runs Contiki on STM32F4 Discovery.
+
+$platform ?= $ORIGIN/../platform/STM32F4_Discovery.repl
+
+# Variables can be passed as arguments by VSCode extension or CMD
+$GdbServerPort ?= 3333
+$VisualSocketPort ?= 8001
+$executablePath ?= $ORIGIN/../binaries/helloWorld.elf
+$InternalPort ?= 9002
+using sysbus
+mach create "STM32F4_Discovery"
+machine LoadPlatformDescription $platform
+
+cpu PerformanceInMips 1
+
+# Load the ELF file
+sysbus LoadELF $executablePath
+
+# Start GDB server
+machine StartGdbServer $GdbServerPort
+
+# This is needed when there is a breakpoint, to make it more "time" accurate
+emulation SetGlobalQuantum "0.00001"
+
+# Set log levels for LEDs
+logLevel -1 sysbus.gpioPortD.LED4
+logLevel -1 sysbus.gpioPortD.LED3
+logLevel -1 sysbus.gpioPortD.LED5
+logLevel -1 sysbus.gpioPortD.LED6
+logLevel -1 sysbus.gpioPortA.UserButton
+
+i $ORIGIN/STM32F4_Discovery.py
+
+# Server visualization
+serveVisualization $VisualSocketPort $InternalPort
+

@@ -1,0 +1,33 @@
+:name: STM32L562E-DK
+:description: This script runs Contiki on STM32F4 Discovery.
+
+$platform ?= $ORIGIN/../platform/STM32L562E-DK.repl
+
+# Variables can be passed as arguments by VSCode extension or CMD
+$GdbServerPort ?= 3333
+$VisualSocketPort ?= 8001
+$executablePath ?= $ORIGIN/../binaries/helloWorld.elf
+$InternalPort ?= 9002
+using sysbus
+mach create "STM32L562E-DK"
+machine LoadPlatformDescription $platform
+
+#cpu PerformanceInMips 1
+
+# Load the ELF file
+sysbus LoadELF $executablePath
+
+# Start GDB server
+machine StartGdbServer $GdbServerPort
+
+# This is needed when there is a breakpoint, to make it more "time" accurate
+emulation SetGlobalQuantum "0.00001"
+
+# Set log levels for LEDs
+logLevel -1 sysbus.gpiod.LED9
+logLevel -1 sysbus.gpiog.LED10
+
+i $ORIGIN/STM32L562E-DK.py
+
+# Server visualization
+serveVisualization $VisualSocketPort $InternalPort

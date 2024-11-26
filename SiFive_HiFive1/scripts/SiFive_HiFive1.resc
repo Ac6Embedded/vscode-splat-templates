@@ -1,0 +1,38 @@
+:name: SiFive_HiFive1
+:description: This script runs Renode on SiFive_HiFive1 Discovery.
+
+$platform ?= $ORIGIN/../platform/SiFive_HiFive1.repl
+
+# Variables can be passed as arguments by VSCode extension or CMD
+$GdbServerPort ?= 3333
+$VisualSocketPort ?= 8001
+$executablePath ?= $ORIGIN/../binaries/helloWorld.elf
+$InternalPort ?= 9002
+using sysbus
+mach create "SiFive_HiFive1"
+machine LoadPlatformDescription $platform
+
+#cpu PerformanceInMips 1
+
+# Load the ELF file
+sysbus LoadELF $executablePath
+
+# Start GDB server
+machine StartGdbServer $GdbServerPort
+
+# This is needed when there is a breakpoint, to make it more "time" accurate
+emulation SetGlobalQuantum "0.00001"
+
+# Set log levels for LEDs
+logLevel -1 sysbus.gpio0.LED1
+logLevel -1 sysbus.gpio0.LED2
+logLevel -1 sysbus.gpio0.LED3
+
+i $ORIGIN/SiFive_HiFive1.py
+
+
+# Server visualization
+serveVisualization $VisualSocketPort $InternalPort
+
+
+

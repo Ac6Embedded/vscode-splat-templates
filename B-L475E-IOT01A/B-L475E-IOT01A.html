@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<!-- saved from url=(0107)file:///home/stagiaire/Tarek/testforgit/fr.ac6.splat.templates/B-L475E-IOT01A/B-L475E-IOT01A.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <link rel="stylesheet" href="assets/B-L475E-IOT01A.css">
+  <link rel="stylesheet" href="../common/assets/serial-ui.css">
+</head>
+
+<body>
+  <div id="app">
+    <div class="logo-container">
+      <svg class="logo-ac6" viewBox="0 0 176 82" width="88px" height="41px">
+        <image xlink:href="../common/assets/logo_ac6.svg"></image>
+      </svg>
+    </div>
+    
+    <div class="refresh-button-container">
+      <button id="refreshButton">
+        <img src="./B-L475E-IOT01A_files/refresh.png" alt="Refresh">
+      </button>
+    </div>
+    
+    <div id="board">
+      <svg class="board" version="1.1" width="539px" height="350px" viewBox="0 0 539 350">
+        <!-- Image of the board -->
+        <image xlink:href="assets/B-L475E-IOT01A.webp" y="0" x="0" preserveAspectRatio="xMidYMax" height="370px" width="600px"></image>
+        <!-- Images replacing interactive elements (e.g., LEDs) -->
+        <rect class="interactive shadowed hidden" id="LED--LED1" x="368" y="45" width="10" height="5" fill="#39ff14"></rect>
+          <rect class="interactive shadowed hidden" id="LED--LED2" x="402" y="45" width="10" height="5" fill="#39ff14"></rect>
+        <ellipse class="interactive" style="opacity:1;fill-opacity:1;" id="Button--UserButton" cx="90" cy="100" rx="11" ry="11"></ellipse>
+        <ellipse class="interactive" style="opacity:1;fill-opacity:1;" id="Button--ResetButton" cx="89" cy="168" rx="11" ry="11"></ellipse>
+      </svg>
+    </div>
+
+    <div id="console-header-container">
+      <div id="title-console">Serial</div>
+      <button id="hide-serial-button">Hide</button>
+      <button id="clear-message-button">Clear</button>
+    </div>
+    
+    <div id="resizable-bar"></div>
+    
+    <div id="send-message-container">
+      <input type="text" id="send-to-uart-content" placeholder="Enter message...">
+      <button id="send-message-button">Send</button>
+    </div>
+    
+    <div id="uart">
+      <div class="message-container" id="message-container">
+        <pre id="uart-content"></pre>
+      </div>
+    </div>
+    
+    <div id="footer"></div>
+  </div>
+
+  <script src="file:///home/stagiaire/Tarek/testforgit/fr.ac6.splat.templates/B-L475E-IOT01A/assets/serial.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", (event) => {
+      console.log("DOM fully loaded and parsed");
+
+      let interactive = document.getElementsByClassName("interactive");
+      let els = {};
+      let uartChars = [];
+      let uartContent = document.getElementById("message-container");
+      for (el of interactive) {
+        let idSplit = el.id.split("--");
+        el.objectType = idSplit[0];
+        els[idSplit[1]] = el;
+      }
+      for (el of Object.values(els)) {
+        if (el.objectType == "LED") el.classList.add("hidden");
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const port = urlParams.get("internalPort") || 9001;
+
+      let ws = new WebSocket(`ws://localhost:${port}/`);
+
+      ws.onopen = function () {
+        console.log("WebSocket connection opened");
+      };
+
+      ws.onmessage = function (e) {
+        let split = e.data.split("|");
+        let type = split[0];
+        let name = split[1];
+        let message = split[2];
+
+        if (type == "LED") {
+          let el = els[name];
+          if (el == null) {
+            return;
+          }
+          if (message == "True") {
+            el.classList.remove("hidden");
+          } else {
+            el.classList.add("hidden");
+          }
+        } else if (type == "UART") {
+          uartChars.push(message);
+          uartContent.innerHTML = uartChars.join("");
+          scrollToBottom();
+        }
+      };
+
+      const clearButton = document.getElementById("clear-message-button");
+      clearButton.addEventListener("click", function () {
+        uartChars = []; // Clear the array holding the UART characters
+        uartContent.innerHTML = uartChars.join("");
+      });
+
+      // Function to send a message when the button is pressed
+      function sendPressMessage() {
+        ws.send("PRESS_BUTTON");
+      }
+
+      // Function to send a message when the button is released
+      function sendReleaseMessage() {
+        ws.send("RELEASE_BUTTON");
+      }
+
+      
+      function sendMessage() {
+          const message = document.getElementById("send-to-uart-content").value;
+            // Send each character one by one
+          ws.send("RECEIVE_UART|\n");
+          for (const char of message) {
+              ws.send(`RECEIVE_UART|${char}`);
+          }
+            // Send carriage return character at the end
+          ws.send("RECEIVE_UART|\r");
+      }
+
+      function sendResetPressMessage() {
+        ws.send("RESET_BUTTON_PRESSED");
+      }
+
+      // Function to send a message when the Reset button is released
+      function sendResetReleaseMessage() {
+        ws.send("RESET_BUTTON_RELEASED");
+      }
+
+      // Adding event handlers to the Reset button
+      let resetButton = document.getElementById("Button--ResetButton");
+      resetButton.addEventListener("mousedown", sendResetPressMessage);
+      resetButton.addEventListener("mouseup", sendResetReleaseMessage);
+
+      // Adding event handlers to the button
+      let button = document.getElementById("Button--UserButton");
+      button.addEventListener("mousedown", sendPressMessage);
+      button.addEventListener("mouseup", sendReleaseMessage);
+
+      // Adding event handler for the send button
+      document.getElementById("send-message-button").addEventListener("click", sendMessage);
+
+      // Function to scroll the message container to the bottom
+      function scrollToBottom() {
+        uartContent.scrollTop = uartContent.scrollHeight;
+      }
+    });
+  </script>
+
+
+
+
+</body></html>

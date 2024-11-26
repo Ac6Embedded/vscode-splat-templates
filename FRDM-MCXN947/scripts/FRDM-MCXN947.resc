@@ -1,0 +1,29 @@
+:name: FRDM-MCXN947
+:description: This script runs Contiki on FRDM-MCXN947.
+
+$platform ?= $ORIGIN/../platform/FRDM-MCXN947.repl
+
+# Variables can be passed as arguments by VSCode extension or CMD
+$GdbServerPort ?= 3333
+$VisualSocketPort ?= 8001
+$executablePath ?= ""
+$InternalPort ?= 9002
+using sysbus
+mach create "FRDM-MCXN947"
+machine LoadPlatformDescription $platform
+
+#cpu PerformanceInMips 1
+
+# Load the ELF file
+sysbus LoadELF $executablePath
+
+# Start GDB server
+machine StartGdbServer $GdbServerPort
+
+# This is needed when there is a breakpoint, to make it more "time" accurate
+emulation SetGlobalQuantum "0.00001"
+
+i $ORIGIN/FRDM-MCXN947.py
+
+# Server visualization
+serveVisualization $VisualSocketPort $InternalPort

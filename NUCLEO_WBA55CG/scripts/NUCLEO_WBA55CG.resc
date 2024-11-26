@@ -1,0 +1,34 @@
+:name: NUCLEO_WBA55CG
+:description: This script runs Contiki on STM32F4 Discovery.
+
+$platform ?= $ORIGIN/../platform/NUCLEO_WBA55CG.repl
+
+# Variables can be passed as arguments by VSCode extension or CMD
+$GdbServerPort ?= 3333
+$VisualSocketPort ?= 8001
+$executablePath ?= $ORIGIN/../binaries/helloWorld.elf
+$InternalPort ?= 9002
+using sysbus
+mach create "NUCLEO_WBA55CG"
+machine LoadPlatformDescription $platform
+
+#cpu PerformanceInMips 1
+
+# Load the ELF file
+sysbus LoadELF $executablePath
+
+# Start GDB server
+machine StartGdbServer $GdbServerPort
+
+# This is needed when there is a breakpoint, to make it more "time" accurate
+emulation SetGlobalQuantum "0.00001"
+
+# Set log levels for LEDs
+logLevel -1 sysbus.gpiob.LED1
+logLevel -1 sysbus.gpioa.LED2
+logLevel -1 sysbus.gpiob.LED3
+
+i $ORIGIN/NUCLEO_WBA55CG.py
+
+# Server visualization
+serveVisualization $VisualSocketPort $InternalPort

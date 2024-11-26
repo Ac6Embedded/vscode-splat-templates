@@ -1,0 +1,39 @@
+using sysbus
+$name?="B-L475E-IOT01A"
+mach create $name
+:description: This script runs Renode on STM32F746G Discovery.
+
+$platform ?= $ORIGIN/../platform/B-L475E-IOT01A.repl
+
+# Variables can be passed as arguments by VSCode extension or CMD
+$GdbServerPort ?= 3333
+$VisualSocketPort ?= 8001
+$executablePath ?= $ORIGIN/../binaries/helloWorld.elf
+$InternalPort ?= 9002
+
+machine LoadPlatformDescription $platform
+
+# Cannot use cpu command with this target
+#cpu PerformanceInMips 1
+
+# Load the ELF file
+sysbus LoadELF $executablePath
+
+# Start GDB server
+machine StartGdbServer $GdbServerPort
+
+# This is needed when there is a breakpoint, to make it more "time" accurate
+emulation SetGlobalQuantum "0.00001"
+
+# Set log levels for LEDs
+logLevel -1 sysbus.gpioa.LED1
+logLevel -1 sysbus.gpiob.LED2
+
+i $ORIGIN/B-L475E-IOT01A.py
+
+
+# Server visualization
+serveVisualization $VisualSocketPort $InternalPort
+
+
+
